@@ -589,6 +589,10 @@ static inline void  bootLoaderInit(void)
 #else
     PIN_DDR(JUMPER_PORT)  = 0;
     PIN_PORT(JUMPER_PORT) = (1<< PIN(JUMPER_PORT, JUMPER_BIT)); /* activate pull-up */
+	DDRB |= (1 << 1); // set as output (scan row for button "P")
+	PORTB &= ~( (1 << 1) ); // set voltage low in case bits are set as output while scanning
+	DDRC &= ~(1 << 5); // set the as input (1=out, 0=in) (read column for button "P")
+	PORTC |= (1 << 5); // activate pull-up
 #endif
 
 //     deactivated by Stephan - reset after each avrdude op is annoing!
@@ -606,10 +610,11 @@ static inline void  bootLoaderExit(void)
 
 
 #if (BOOTLOADER_IGNOREPROGBUTTON)
-#	define bootLoaderConditionSimple()	(false)
+#define bootLoaderConditionSimple()	(false)
 #else
-#	define bootLoaderConditionSimple()	((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0)
+#define bootLoaderConditionSimple()	((PINC & 0b00100000) == 0) || ((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0)
 #endif
+
 
 #if (HAVE_BOOTLOADERENTRY_FROMSOFTWARE)
 /*
